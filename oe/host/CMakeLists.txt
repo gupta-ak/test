@@ -39,7 +39,6 @@ if (UNIX)
     crypto/openssl/key.c
     crypto/openssl/random.c
     crypto/openssl/rsa.c
-    crypto/openssl/sha.c
     linux/hostthread.c
     linux/posix.c
     linux/time.c
@@ -48,9 +47,7 @@ elseif (WIN32)
   set(PLATFORM_SRC
     ../3rdparty/mbedtls/mbedtls/library/bignum.c
     crypto/bcrypt/hmac.c
-    crypto/bcrypt/random.c
     crypto/bcrypt/rsa.c
-    crypto/bcrypt/sha.c
     windows/hostthread.c
     windows/posix.c
     windows/time.c)
@@ -67,7 +64,6 @@ if (OE_SGX)
     ../common/sgx/revocation.c
     ../common/sgx/sgxcertextensions.c
     ../common/sgx/tcbinfo.c
-    ../common/sgx/tlsverifier.c
     sgx/calls.c
     sgx/create.c
     sgx/elf.c
@@ -135,9 +131,13 @@ add_library(oehost STATIC
   signkey.c
   strings.c
   tests.c
+  crypto/sha.c
   ${PLATFORM_SRC})
 
 target_link_libraries(oehost PUBLIC oe_includes)
+if (WIN32)
+    target_link_libraries(oehost PUBLIC ws2_32)
+endif ()
 
 add_dependencies(oehost posix_untrusted_edl)
 
@@ -225,6 +225,10 @@ set_property(TARGET oehost PROPERTY
 # Convenience library for creating a host-app (that needs the
 # -rdynamic link flag).
 add_library(oehostapp INTERFACE)
+
+if (NOT UNIX)
+target_compile_definitions(oehostapp INTERFACE -DWINDOWS_HOST )
+endif ()
 
 target_link_libraries(oehostapp INTERFACE oehost)
 

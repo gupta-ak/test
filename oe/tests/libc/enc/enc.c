@@ -13,38 +13,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mount.h>
 #include <time.h>
 #include "libc_t.h"
 #include "mtest.h"
 
-#pragma STDC FENV_ACCESS ON
-
-/* Type of the control word.  */
-typedef unsigned int fpu_control_t __attribute__((__mode__(__HI__)));
-/* Macros for accessing the hardware control word.  */
-#define _FPU_GETCW(cw) __asm__ __volatile__("fnstcw %0" : "=m"(*&cw))
-#define _FPU_SETCW(cw) __asm__ __volatile__("fldcw %0" : : "m"(*&cw))
-
 int t_status = 0;
-
-int my_printfpu_control()
-{
-    fpu_control_t cw;
-    _FPU_GETCW(cw);
-    return cw;
-}
-
-uint32_t my_getmxcsr()
-{
-    uint32_t csr;
-    asm volatile("stmxcsr %0" : "=m"(csr));
-    return csr;
-}
-
-void my_setmxcsr(uint32_t csr)
-{
-    asm volatile("ldmxcsr %0" : : "m"(csr));
-}
 
 int t_printf(const char* s, ...)
 {
@@ -73,14 +47,6 @@ int run_test(const char* name, int (*main)(int argc, const char* argv[]))
 
     /* Print running message. */
     printf("=== running: %s\n", name);
-
-    /* Verify that the FPU control word and SSE control/status flags are set
-     * correctly before each test */
-    uint32_t cw = my_printfpu_control();
-    OE_TEST(cw == 0x37f);
-
-    uint32_t csr = my_getmxcsr();
-    OE_TEST(csr == 0x1f80);
 
     /* Disable Open Enclave debug malloc checks. */
     {
@@ -122,6 +88,18 @@ extern int run_tests(void);
 
 int test()
 {
+    OE_TEST(oe_load_module_host_file_system() == OE_OK);
+    OE_TEST(oe_load_module_host_socket_interface() == OE_OK);
+    OE_TEST(oe_load_module_host_resolver() == OE_OK);
+    OE_TEST(oe_load_module_host_epoll() == OE_OK);
+    OE_TEST(oe_load_module_host_resolver() == OE_OK);
+
+    if (mount("/", "/", OE_HOST_FILE_SYSTEM, 0, NULL) != 0)
+    {
+        fprintf(stderr, "mount() failed\n");
+        exit(1);
+    }
+
     return run_tests();
 }
 
@@ -129,6 +107,6 @@ OE_SET_ENCLAVE_SGX(
     1,    /* ProductID */
     1,    /* SecurityVersion */
     true, /* AllowDebug */
-    512,  /* HeapPageCount */
-    256,  /* StackPageCount */
+    4096, /* HeapPageCount */
+    1024, /* StackPageCount */
     2);   /* TCSCount */

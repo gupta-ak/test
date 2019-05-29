@@ -5,23 +5,17 @@
 - name: Gather Ansible facts
   setup:
 
-- include_role:
+- import_role:
     name: linux/common
-    tasks_from: apt-repo.yml
-  vars:
-    apt_key_url: "https://packages.microsoft.com/keys/microsoft.asc"
-    apt_repository: "deb [arch=amd64] https://packages.microsoft.com/ubuntu/{{ ansible_distribution_version }}/prod {{ ansible_distribution_release }} main"
+    tasks_from: apt-repo-microsoft.yml
 
-- include_role:
+- import_role:
     name: linux/common
-    tasks_from: apt-repo.yml
-  vars:
-    apt_key_url: "https://apt.llvm.org/llvm-snapshot.gpg.key"
-    apt_repository: "deb http://apt.llvm.org/{{ ansible_distribution_release }} llvm-toolchain-{{ ansible_distribution_release }}-7 main"
+    tasks_from: apt-repo-llvm.yml
 
-- name: Include distribution vars
+- name: Include vars
   include_vars:
-    file: "{{ ansible_distribution | lower }}.yml"
+    file: "{{ ansible_distribution_release | lower }}.yml"
 
 - name: Install all the Open Enclave prerequisites APT packages for development
   apt:
@@ -29,36 +23,6 @@
     state: present
     update_cache: yes
     install_recommends: no
-
-- name: Download the OCaml deb packages
-  get_url:
-    url: "{{ item.value.url }}"
-    dest: "{{ item.value.local_path }}"
-    timeout: 10
-  retries: 5
-  with_dict: "{{ ocaml_packages }}"
-
-- name: Install the OCaml deb packages
-  shell: |
-    set -o errexit
-    dpkg --install {{ ocaml_packages.ocaml_base_nox.local_path }}
-    dpkg --install {{ ocaml_packages.ocaml_base.local_path }}
-    dpkg --install --force-depends {{ ocaml_packages.ocaml_compiler_libs.local_path }}
-    dpkg --install {{ ocaml_packages.ocaml_interp.local_path }}
-    dpkg --install {{ ocaml_packages.ocaml_nox.local_path }}
-    dpkg --install {{ ocaml_packages.ocaml.local_path }}
-  args:
-    executable: /bin/bash
-
-- name: Clean OCaml downloaded deb packages
-  file:
-    state: absent
-    path: "{{ item.value.local_path }}"
-  with_dict: "{{ ocaml_packages }}"
-
-- import_role:
-    name: linux/openenclave
-    tasks_from: opam-setup.yml
 
 - name: Install CMake 3.13.1
   unarchive:

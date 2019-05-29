@@ -26,7 +26,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 
 /* TILEGX has no FP. */
 
-int
+PROTECTED int
 unw_is_fpreg (int regnum)
 {
   return 0;

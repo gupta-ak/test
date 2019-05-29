@@ -19,7 +19,7 @@
 extern void TestVerifyTCBInfo(
     oe_enclave_t* enclave,
     const char* test_file_name);
-extern int FileToBytes(const char* path, std::vector<uint8_t>* output);
+extern std::vector<uint8_t> FileToBytes(const char* path);
 
 void generate_and_save_report(oe_enclave_t* enclave)
 {
@@ -44,22 +44,13 @@ void generate_and_save_report(oe_enclave_t* enclave)
 #endif
 }
 
-int load_and_verify_report()
+void load_and_verify_report()
 {
-    std::vector<uint8_t> report;
-    int ret = FileToBytes("./data/generated_report.bytes", &report);
-
-    // File not found, so skip the verification.
-    if (ret != 0)
-    {
-        printf("load_and_verify_report(): Couldn't find report. Skipping...\n");
-        return SKIP_RETURN_CODE;
-    }
-
+#ifdef OE_USE_LIBSGX
+    std::vector<uint8_t> report = FileToBytes("./data/generated_report.bytes");
     OE_TEST(
         oe_verify_report(NULL, &report[0], report.size() - 1, NULL) == OE_OK);
-
-    return 0;
+#endif
 }
 
 int main(int argc, const char* argv[])
@@ -79,7 +70,8 @@ int main(int argc, const char* argv[])
     // Load and attest report without creating any enclaves.
     if (argc == 3 && strcmp(argv[2], "--attest-generated-report") == 0)
     {
-        return load_and_verify_report();
+        load_and_verify_report();
+        return 0;
     }
 
     /* Check arguments */

@@ -102,7 +102,7 @@ static const char *regname[] =
     [UNW_PPC32_F31]="FPR31"
 };
 
-const char *
+PROTECTED const char *
 unw_regname (unw_regnum_t reg)
 {
   if (reg < (unw_regnum_t) ARRAY_SIZE (regname))

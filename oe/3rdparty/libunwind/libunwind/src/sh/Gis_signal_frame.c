@@ -63,7 +63,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
   3e:   09 00           nop
 */
 
-int
+PROTECTED int
 unw_is_signal_frame (unw_cursor_t *cursor)
 {
 #ifdef __linux__
@@ -75,7 +75,7 @@ unw_is_signal_frame (unw_cursor_t *cursor)
   int ret;
 
   as = c->dwarf.as;
-  a = unw_get_accessors_int (as);
+  a = unw_get_accessors (as);
   arg = c->dwarf.as_arg;
 
   ip = c->dwarf.ip;

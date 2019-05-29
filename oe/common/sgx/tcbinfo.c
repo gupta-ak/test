@@ -8,6 +8,8 @@
 #include <openenclave/internal/utils.h>
 #include "../common.h"
 
+#ifdef OE_USE_LIBSGX
+
 // Public key of Intel's root certificate.
 static const char* _trusted_root_key_pem =
     "-----BEGIN PUBLIC KEY-----\n"
@@ -817,3 +819,5 @@ done:
 
     return result;
 }
+
+#endif

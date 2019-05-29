@@ -36,8 +36,8 @@ oe_result_t oe_hmac_sha256_init(
         (ULONG)keysize,
         0);
 
-    if (!BCRYPT_SUCCESS(status))
-        OE_RAISE(OE_CRYPTO_ERROR);
+    if (status != STATUS_SUCCESS)
+        OE_RAISE(OE_FAILURE);
 
     ((oe_hmac_sha256_context_impl_t*)context)->handle = handle;
     result = OE_OK;
@@ -61,8 +61,8 @@ oe_result_t oe_hmac_sha256_update(
 
     status = BCryptHashData(impl->handle, (PUCHAR)data, (ULONG)size, 0);
 
-    if (!BCRYPT_SUCCESS(status))
-        OE_RAISE(OE_CRYPTO_ERROR);
+    if (status != STATUS_SUCCESS)
+        OE_RAISE(OE_FAILURE);
 
     result = OE_OK;
 
@@ -85,8 +85,8 @@ oe_result_t oe_hmac_sha256_final(
     status =
         BCryptFinishHash(impl->handle, sha256->buf, sizeof(sha256->buf), 0);
 
-    if (!BCRYPT_SUCCESS(status))
-        OE_RAISE(OE_CRYPTO_ERROR);
+    if (status != STATUS_SUCCESS)
+        OE_RAISE(OE_FAILURE);
 
     result = OE_OK;
 
@@ -97,17 +97,14 @@ done:
 oe_result_t oe_hmac_sha256_free(oe_hmac_sha256_context_t* context)
 {
     oe_result_t result = OE_UNEXPECTED;
-    NTSTATUS status;
     oe_hmac_sha256_context_impl_t* impl =
         (oe_hmac_sha256_context_impl_t*)context;
 
     if (!context)
         OE_RAISE(OE_INVALID_PARAMETER);
 
-    status = BCryptDestroyHash(impl->handle);
-
-    if (!BCRYPT_SUCCESS(status))
-        OE_RAISE(OE_CRYPTO_ERROR);
+    if (BCryptDestroyHash(impl->handle) != STATUS_SUCCESS)
+        OE_RAISE(OE_FAILURE);
 
     result = OE_OK;
 

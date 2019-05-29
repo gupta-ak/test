@@ -80,7 +80,7 @@ static const char *regname[] =
     "d24", "d25", "d26", "d27", "d28", "d29", "d30", "d31",
   };
 
-const char *
+PROTECTED const char *
 unw_regname (unw_regnum_t reg)
 {
   if (reg < (unw_regnum_t) ARRAY_SIZE (regname))

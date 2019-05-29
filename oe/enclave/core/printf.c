@@ -5,8 +5,10 @@
 #include <openenclave/bits/types.h>
 #include <openenclave/corelibc/ctype.h>
 #include <openenclave/corelibc/stdarg.h>
+#include <openenclave/corelibc/stdio.h>
 #include <openenclave/corelibc/stdlib.h>
 #include <openenclave/corelibc/string.h>
+#include <openenclave/corelibc/unistd.h>
 #include <openenclave/internal/print.h>
 #include "intstr.h"
 
@@ -389,7 +391,10 @@ static size_t _format(
     {
         /* left justified */
         n += _prefix(out, ph);
-        n += _fill(out, '0', nprecision);
+
+        if (ph->type != TYPE_s)
+            n += _fill(out, '0', nprecision);
+
         n += out->write(out, buf, len);
         n += _fill(out, pad, nwidth);
     }
@@ -398,7 +403,10 @@ static size_t _format(
         /* right justified */
         n += _fill(out, pad, nwidth);
         n += _prefix(out, ph);
-        n += _fill(out, '0', nprecision);
+
+        if (ph->type != TYPE_s)
+            n += _fill(out, '0', nprecision);
+
         n += out->write(out, buf, len);
     }
 
@@ -709,4 +717,26 @@ int oe_printf(const char* format, ...)
     oe_va_end(ap);
 
     return n;
+}
+
+int oe_puts(const char* s)
+{
+    oe_printf("%s\n", s);
+    return 0;
+}
+
+int oe_putchar(int c)
+{
+    oe_printf("%c", c);
+    return 0;
+}
+
+__attribute__((weak)) int putchar(int c)
+{
+    return oe_putchar(c);
+}
+
+__attribute__((weak)) int puts(const char* s)
+{
+    return oe_puts(s);
 }
