@@ -3,14 +3,24 @@
 
 #include <openenclave/bits/safecrt.h>
 #include <openenclave/enclave.h>
-#include <openenclave/internal/entropy.h>
-#include <openenclave/internal/rdrand.h>
+#include <openenclave/internal/random.h>
 
-/* TODO: This should use RDSEED instead. See issue #242. */
-oe_result_t oe_get_entropy(void* output, size_t len)
+/*
+ * MBEDTLS links this function definition when MBEDTLS_ENTROPY_HARDWARE_ALT
+ * is defined in the MBEDTLS config.h file. This is the sole source of entropy
+ * for MBEDTLS. All other MBEDTLS entropy sources are disabled since they don't
+ * work within enclaves.
+ */
+int mbedtls_hardware_poll(
+    void* data,
+    unsigned char* output,
+    size_t len,
+    size_t* olen)
 {
-    oe_result_t ret = OE_UNEXPECTED;
-    unsigned char* p = (unsigned char*)output;
+    int ret = -1;
+    unsigned char* p = output;
+
+    OE_UNUSED(data);
 
     if (!output)
         goto done;
@@ -23,11 +33,10 @@ oe_result_t oe_get_entropy(void* output, size_t len)
         {
             uint64_t x = oe_rdrand();
 
-            if (oe_memcpy_s(p, len, &x, sizeof(uint64_t)) != OE_OK)
+            if (oe_memcpy_s(p, sizeof(uint64_t), &x, sizeof(uint64_t)) != OE_OK)
                 goto done;
 
             p += sizeof(uint64_t);
-            len -= sizeof(uint64_t);
         }
     }
 
@@ -37,11 +46,14 @@ oe_result_t oe_get_entropy(void* output, size_t len)
         uint64_t x = oe_rdrand();
         const unsigned char* q = (const unsigned char*)&x;
 
-        if (oe_memcpy_s(p, len, q, r) != OE_OK)
-            goto done;
+        while (r--)
+            *p++ = *q++;
     }
 
-    ret = OE_OK;
+    if (olen)
+        *olen = len;
+
+    ret = 0;
 
 done:
     return ret;

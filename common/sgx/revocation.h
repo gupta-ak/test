@@ -12,6 +12,8 @@
 
 OE_EXTERNC_BEGIN
 
+#ifdef OE_USE_LIBSGX
+
 oe_result_t oe_enforce_revocation(
     oe_cert_t* leaf_cert,
     oe_cert_t* intermediate_cert,
@@ -22,6 +24,8 @@ oe_result_t oe_get_revocation_info(oe_get_revocation_info_args_t* args);
 
 // Cleanup the args structure.
 void oe_cleanup_get_revocation_info_args(oe_get_revocation_info_args_t* args);
+
+#endif
 
 OE_EXTERNC_END
 

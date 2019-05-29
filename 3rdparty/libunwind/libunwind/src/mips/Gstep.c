@@ -26,11 +26,11 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 #include "unwind_i.h"
 #include "offsets.h"
 
-static int
-mips_handle_signal_frame (unw_cursor_t *cursor)
+PROTECTED int
+unw_handle_signal_frame (unw_cursor_t *cursor)
 {
   struct cursor *c = (struct cursor *) cursor;
-  unw_word_t sc_addr, sp_addr = c->dwarf.cfa;
+  unw_word_t sc_addr, sp, sp_addr = c->dwarf.cfa;
   unw_word_t ra, fp;
   int ret;
 
@@ -110,13 +110,13 @@ mips_handle_signal_frame (unw_cursor_t *cursor)
   return 1;
 }
 
-int
+PROTECTED int
 unw_step (unw_cursor_t *cursor)
 {
   struct cursor *c = (struct cursor *) cursor;
   int ret;
 
-  ret = mips_handle_signal_frame (cursor);
+  ret = unw_handle_signal_frame (cursor);
   if (ret < 0)
     /* Not a signal frame, try DWARF-based unwinding. */
     ret = dwarf_step (&c->dwarf);

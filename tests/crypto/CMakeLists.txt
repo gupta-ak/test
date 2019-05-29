@@ -1,6 +1,8 @@
 # Copyright (c) Microsoft Corporation. All rights reserved.
 # Licensed under the MIT License.
 
-add_subdirectory(data)
+if (UNIX)
 add_subdirectory(enclave)
+endif()
+
 add_subdirectory(host)

@@ -47,7 +47,7 @@ static oe_result_t _syscall_hook(
     long arg6,
     long* ret)
 {
-    oe_result_t result = OE_UNSUPPORTED;
+    oe_result_t result = OE_UNEXPECTED;
 
     OE_UNUSED(arg4);
     OE_UNUSED(arg5);
@@ -89,29 +89,22 @@ static oe_result_t _syscall_hook(
         }
         case SYS_readv:
         {
-            /* Handle SYS_readv because fread invokes readv internally
-             * To avoid dealing with linux-specific readv semantics on Windows,
-             * marshal this as a synchronous C read() invocation.
-             */
-
             struct iovec* iov = (struct iovec*)arg2;
 
             // determine the total buffer size
             size_t buf_size = sizeof(struct iovec) * (size_t)arg3;
-            size_t data_size = 0;
             for (size_t i = 0; i < (size_t)arg3; ++i)
             {
-                data_size += iov[i].iov_len;
+                buf_size += iov[i].iov_len;
             }
-            buf_size += data_size;
 
-            // create the local buffer
-            struct iovec* iov_host = (struct iovec*)malloc(buf_size);
-            char* data_pos =
-                (char*)iov_host + sizeof(struct iovec) * (size_t)arg3;
+            // create the buffer
+            char* buffer = (char*)oe_host_malloc(buf_size);
+
+            struct iovec* iov_host = (struct iovec*)buffer;
+            char* buf_pos = buffer + sizeof(struct iovec) * (size_t)arg3;
 
             // initialize the buffers
-            char* buf_pos = data_pos;
             for (size_t i = 0; i < (size_t)arg3; ++i)
             {
                 iov_host[i].iov_base = buf_pos;
@@ -121,7 +114,7 @@ static oe_result_t _syscall_hook(
 
             // make the host call
             int rval = -1;
-            OE_TEST(OE_OK == f_read(&rval, (int)arg1, data_pos, data_size));
+            OE_TEST(OE_OK == f_readv(&rval, (int)arg1, iov_host, (size_t)arg3));
             *ret = (long)rval;
 
             if (rval > 0)
@@ -134,8 +127,8 @@ static oe_result_t _syscall_hook(
                 }
             }
 
-            // release the local buffer
-            free(iov_host);
+            // release the buffer
+            oe_host_free(buffer);
 
             result = OE_OK;
             break;
@@ -150,10 +143,7 @@ static oe_result_t _syscall_hook(
         }
         default:
         {
-            /* Avoid OE_RAISE here to reduce error log volume since the
-             * syscall handler allows falling back to defaults */
-            OE_TRACE_VERBOSE("Unsupported _syscall_hook number:%#x\n", number);
-            break;
+            OE_RAISE(OE_UNSUPPORTED);
         }
     }
 

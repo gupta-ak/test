@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 #include <ctype.h>
-#include <openenclave/corelibc/string.h>
 #include "readfile.h"
 
 oe_result_t read_cert(char* filename, char* cert)
@@ -22,11 +21,7 @@ oe_result_t read_cert(char* filename, char* cert)
     return OE_OK;
 }
 
-oe_result_t read_chain(
-    char* filename1,
-    char* filename2,
-    char* chain,
-    size_t chain_size)
+oe_result_t read_chain(char* filename1, char* filename2, char* chain)
 {
     size_t len_cert1 = 0, len_cert2 = 0;
     char chain_temp[max_cert_size];
@@ -39,7 +34,7 @@ oe_result_t read_chain(
         chain[len_cert1] = '\0';
         len_cert2 = fread(chain_temp, sizeof(char), max_cert_size, cfp2);
         chain_temp[len_cert2] = '\0';
-        oe_strlcat(chain, chain_temp, chain_size);
+        strcat(chain, chain_temp);
     }
     else
     {
@@ -55,8 +50,7 @@ oe_result_t read_chains(
     char* filename1,
     char* filename2,
     char* filename3,
-    char* chain,
-    size_t chain_size)
+    char* chain)
 {
     size_t len_cert1 = 0, len_cert2 = 0, len_cert3 = 0;
     char chain_temp1[max_cert_size];
@@ -73,8 +67,8 @@ oe_result_t read_chains(
         chain_temp1[len_cert2] = '\0';
         len_cert3 = fread(chain_temp2, sizeof(char), max_cert_size, cfp3);
         chain_temp2[len_cert3] = '\0';
-        oe_strlcat(chain, chain_temp1, chain_size);
-        oe_strlcat(chain, chain_temp2, chain_size);
+        strcat(chain, chain_temp1);
+        strcat(chain, chain_temp2);
     }
     else
     {
@@ -232,14 +226,14 @@ oe_result_t read_mod(char* filename, uint8_t* mod, size_t* mod_size)
     return OE_OK;
 }
 
-oe_result_t read_mixed_chain(
-    char* chain1,
-    char* chain2,
-    char* chain,
-    size_t chain_size)
+oe_result_t read_mixed_chain(char* chain, char* chain1, char* chain2)
 {
-    oe_strlcat(chain, chain1, chain_size);
-    oe_strlcat(chain, chain2, chain_size);
+    char chain_temp[max_cert_chain_size * 2];
+    OE_UNUSED(chain);
+
+    strcat(chain_temp, chain1);
+    strcat(chain_temp, chain2);
+    chain = chain_temp;
     return OE_OK;
 }
 

@@ -17,7 +17,7 @@ static const char *regname[] =
     "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5", "xmm6", "xmm7",
   };
 
-const char *
+PROTECTED const char *
 unw_regname (unw_regnum_t reg)
 {
   if (reg < (unw_regnum_t) ARRAY_SIZE (regname))

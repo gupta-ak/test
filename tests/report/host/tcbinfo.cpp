@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT License.
+#ifdef OE_USE_LIBSGX
 
 #include <openenclave/host.h>
 #include <openenclave/internal/aesm.h>
@@ -18,7 +19,7 @@
 
 #define SKIP_RETURN_CODE 2
 
-int FileToBytes(const char* path, std::vector<uint8_t>* out)
+std::vector<uint8_t> FileToBytes(const char* path)
 {
     std::ifstream f(path, std::ios::binary);
     std::vector<uint8_t> bytes = std::vector<uint8_t>(
@@ -27,14 +28,13 @@ int FileToBytes(const char* path, std::vector<uint8_t>* out)
     if (bytes.empty())
     {
         printf("File %s not found\n", path);
-        return -1;
+        exit(1);
     }
 
     // Explicitly add null character so that the bytes can be printed out
     // safely as a string if needed.
     bytes.push_back('\0');
-    *out = bytes;
-    return 0;
+    return bytes;
 }
 
 void AssertParsedValues(oe_parsed_tcb_info_t& parsed_info)
@@ -76,9 +76,7 @@ void TestVerifyTCBInfo(
     oe_tcb_level_t* platform_tcb_level,
     oe_result_t expected)
 {
-    std::vector<uint8_t> tcbInfo;
-    OE_TEST(FileToBytes(test_filename, &tcbInfo) == 0);
-
+    std::vector<uint8_t> tcbInfo = FileToBytes(test_filename);
     oe_parsed_tcb_info_t parsed_info = {0};
     oe_result_t ecall_result = OE_FAILURE;
 
@@ -208,9 +206,7 @@ void TestVerifyTCBInfo(oe_enclave_t* enclave, const char* test_filename)
     for (size_t i = 0; i < sizeof(negative_files) / sizeof(negative_files[0]);
          ++i)
     {
-        std::vector<uint8_t> tcbInfo;
-        OE_TEST(FileToBytes(negative_files[i], &tcbInfo) == 0);
-
+        std::vector<uint8_t> tcbInfo = FileToBytes(negative_files[i]);
         oe_parsed_tcb_info_t parsed_info = {0};
         oe_tcb_level_t platform_tcb_level = {{0}};
         oe_result_t ecall_result = OE_FAILURE;
@@ -226,3 +222,5 @@ void TestVerifyTCBInfo(oe_enclave_t* enclave, const char* test_filename)
             "TestVerifyTCBInfo: Negative Test %s passed\n", negative_files[i]);
     }
 }
+
+#endif

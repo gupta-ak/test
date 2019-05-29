@@ -27,7 +27,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 
 #include "libunwind_i.h"
 
-int
+PROTECTED int
 unw_is_fpreg (int regnum)
 {
 #if 0

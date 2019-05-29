@@ -36,7 +36,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ucontext.h>
 #include <unistd.h>
 #include <libunwind.h>
 
@@ -213,11 +212,7 @@ sighandler (int signal, void *siginfo UNUSED, void *context)
       printf (" @ %lx", (unsigned long) uc->uc_mcontext.mc_rip);
 #endif
 #elif defined UNW_TARGET_ARM
-#if defined __linux__
       printf (" @ %lx", (unsigned long) uc->uc_mcontext.arm_pc);
-#elif defined __FreeBSD__
-      printf (" @ %lx", (unsigned long) uc->uc_mcontext.__gregs[_REG_PC]);
-#endif
 #endif
       printf ("\n");
     }

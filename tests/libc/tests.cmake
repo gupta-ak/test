@@ -13,6 +13,11 @@ set(BUILD "${MY_COMPILER}:${BUILD_TYPE}")
 
 # Include tests that work on all builds:
 set(LIBC_TESTS
+    3rdparty/musl/libc-test/src/functional/socket.c
+    3rdparty/musl/libc-test/src/functional/inet_pton.c
+    3rdparty/musl/libc-test/src/functional/fnmatch.c
+    3rdparty/musl/libc-test/src/functional/fwscanf.c
+    3rdparty/musl/libc-test/src/functional/ungetc.c
     3rdparty/musl/libc-test/src/functional/argv.c
     3rdparty/musl/libc-test/src/functional/basename.c
     3rdparty/musl/libc-test/src/functional/clock_gettime.c
@@ -24,6 +29,7 @@ set(LIBC_TESTS
     3rdparty/musl/libc-test/src/functional/search_tsearch.c
     3rdparty/musl/libc-test/src/functional/snprintf.c
     3rdparty/musl/libc-test/src/functional/sscanf.c
+    3rdparty/musl/libc-test/src/functional/sscanf_long.c
     3rdparty/musl/libc-test/src/functional/string.c
     3rdparty/musl/libc-test/src/functional/string_memcpy.c
     3rdparty/musl/libc-test/src/functional/string_memmem.c
@@ -37,7 +43,6 @@ set(LIBC_TESTS
     3rdparty/musl/libc-test/src/functional/strtof.c
     3rdparty/musl/libc-test/src/functional/strtol.c
     3rdparty/musl/libc-test/src/functional/strtold.c
-    3rdparty/musl/libc-test/src/functional/tls_align.c
     3rdparty/musl/libc-test/src/functional/udiv.c
     3rdparty/musl/libc-test/src/functional/wcsstr.c
     3rdparty/musl/libc-test/src/functional/wcstol.c
@@ -233,7 +238,7 @@ set(LIBC_TESTS
 )
 
 # Exclude tests that fail on Clang:
-if (NOT (USE_CLANGW OR MY_COMPILER MATCHES "CLANG"))
+if (NOT MY_COMPILER MATCHES "CLANG")
     list(APPEND LIBC_TESTS 
         3rdparty/musl/libc-test/src/functional/tgmath.c
         3rdparty/musl/libc-test/src/math/fmax.c
@@ -252,6 +257,32 @@ if (NOT (USE_CLANGW OR MY_COMPILER MATCHES "CLANG"))
     )
 endif()
 
+# Exclude tests that fail these Clang builds:
+if (NOT (BUILD MATCHES "CLANG:DEBUG" OR BUILD MATCHES "CLANG:RELWITHDEBINFO"))
+    list(APPEND LIBC_TESTS 
+        #3rdparty/musl/libc-test/src/math/fdim.c
+        #3rdparty/musl/libc-test/src/math/fdimf.c
+        #3rdparty/musl/libc-test/src/math/fdiml.c
+        #3rdparty/musl/libc-test/src/math/fmaf.c
+        #3rdparty/musl/libc-test/src/math/log1p.c
+        #3rdparty/musl/libc-test/src/math/log1pf.c
+        #3rdparty/musl/libc-test/src/math/powf.c
+    )
+endif()
+
+##==============================================================================
+##
+## Broken tests:
+##
+##==============================================================================
+
+if (FALSE)
+    list(APPEND LIBC_TESTS 
+        #Issue #1090 opened to track broken test
+        3rdparty/musl/libc-test/src/functional/tls_align.c
+    )
+endif()
+
 ##==============================================================================
 ##
 ## Unsupported tests:
@@ -265,10 +296,7 @@ if (FALSE)
         3rdparty/musl/libc-test/src/functional/dlopen.c
         3rdparty/musl/libc-test/src/functional/fcntl.c
         3rdparty/musl/libc-test/src/functional/fdopen.c
-        3rdparty/musl/libc-test/src/functional/fnmatch.c
         3rdparty/musl/libc-test/src/functional/fscanf.c
-        3rdparty/musl/libc-test/src/functional/fwscanf.c
-        3rdparty/musl/libc-test/src/functional/inet_pton.c
         3rdparty/musl/libc-test/src/functional/ipc_msg.c
         3rdparty/musl/libc-test/src/functional/ipc_sem.c
         3rdparty/musl/libc-test/src/functional/ipc_shm.c
@@ -280,13 +308,10 @@ if (FALSE)
         3rdparty/musl/libc-test/src/functional/pthread_mutex.c
         3rdparty/musl/libc-test/src/functional/pthread_robust.c
         3rdparty/musl/libc-test/src/functional/pthread_tsd.c
-        # sscanf_long Runs out of memory on Windows and Linux CI
-        3rdparty/musl/libc-test/src/functional/sscanf_long.c
         3rdparty/musl/libc-test/src/functional/search_hsearch.c
         3rdparty/musl/libc-test/src/functional/sem_init.c
         3rdparty/musl/libc-test/src/functional/sem_open.c
         3rdparty/musl/libc-test/src/functional/setjmp.c
-        3rdparty/musl/libc-test/src/functional/socket.c
         3rdparty/musl/libc-test/src/functional/spawn.c
         3rdparty/musl/libc-test/src/functional/stat.c
         3rdparty/musl/libc-test/src/functional/strftime.c
@@ -296,7 +321,6 @@ if (FALSE)
         3rdparty/musl/libc-test/src/functional/tls_init.c
         3rdparty/musl/libc-test/src/functional/tls_init_dlopen.c
         3rdparty/musl/libc-test/src/functional/tls_local_exec.c
-        3rdparty/musl/libc-test/src/functional/ungetc.c
         3rdparty/musl/libc-test/src/functional/vfork.c
         3rdparty/musl/libc-test/src/math/acosh.c
         3rdparty/musl/libc-test/src/math/asinh.c

@@ -14,12 +14,8 @@
         tasks_from: slave-setup.yml
 
     - import_role:
-        name: linux/jenkins
-        tasks_from: validation.yml
-
-    - import_role:
-        name: linux/docker
-        tasks_from: validation.yml
+        name: linux/validation
+        tasks_from: slave-validation.yml
 
 - import_playbook: oe-windows-acc-setup.yml
 
@@ -32,5 +28,5 @@
         tasks_from: slave-setup.yml
 
     - import_role:
-        name: windows/jenkins
-        tasks_from: validation.yml
+        name: windows/validation
+        tasks_from: slave-validation.yml

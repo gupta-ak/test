@@ -96,7 +96,7 @@ static const char *const regname[] =
     [UNW_AARCH64_FPCR] = "fpcr",
   };
 
-const char *
+PROTECTED const char *
 unw_regname (unw_regnum_t reg)
 {
   if (reg < (unw_regnum_t) ARRAY_SIZE (regname) && regname[reg] != NULL)
